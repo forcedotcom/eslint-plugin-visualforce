@@ -24,7 +24,7 @@ Example:
     ],
     "rules": {
       "visualforce/vf-no-atom-expr": "error",
-      "visualforce/vf-no-apex-tags", "error"
+      "visualforce/vf-no-apex-tags": "error"
     }
 }
 ```

@@ -1,0 +1,78 @@
+{
+  "name": "@salesforce/eslint-plugin-visualforce",
+  "version": "0.1.2",
+  "description": "An ESLint plugin to extract and lint scripts from VisualForce pages",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "webpack",
+    "test": "node tests/run-tests.js",
+    "prepublish": "yarn run build && yarn run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/forcedotcom/eslint-plugin-visualforce.git"
+  },
+  "keywords": [
+    "eslint",
+    "visualforce",
+    "salesforce",
+    "eslint-plugin"
+  ],
+  "author": "Salesforce",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/forcedotcom/eslint-plugin-visualforce/issues"
+  },
+  "homepage": "https://github.com/forcedotcom/eslint-plugin-visualforce#readme",
+  "dependencies": {
+    "@salesforce/acorn-visualforce": "^1.2.1",
+    "htmlparser2": "^3.9.2",
+    "proxyquire": "^1.7.11"
+  },
+  "devDependencies": {
+    "babel-core": "^6.24.1",
+    "babel-loader": "^6.4.1",
+    "babel-preset-env": "^1.4.0",
+    "eslint": "^3.19.0",
+    "eslint-config-recommended": "^1.5.0",
+    "regenerator-runtime": "^0.10.3",
+    "tape": "^4.6.3",
+    "webpack": "^2.3.3"
+  },
+  "peerDependencies": {
+    "eslint": "3"
+  },
+  "babel": {
+    "presets": [
+      [
+        "env",
+        {
+          "targets": {
+            "node": 4
+          },
+          "debug": true
+        }
+      ]
+    ]
+  },
+  "eslintConfig": {
+    "extends": "eslint:recommended",
+    "rules": {
+      "indent": [
+        "error",
+        2
+      ]
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "ecmaFeatures": {
+        "experimentalObjectRestSpread": true
+      },
+      "sourceType": "module"
+    }
+  }
+}

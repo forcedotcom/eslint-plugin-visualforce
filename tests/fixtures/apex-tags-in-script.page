@@ -1,0 +1,8 @@
+<apex:page>
+    <h1>&lt;apex:*&gt; tags within &lt;script&gt;</h1>
+    <p>Some developers use VF tags such as &lt;apex:repeat&gt; within &lt;script&gt; to iterate over arrays.</p>
+    <p>It is a bad practice, so the linter will complain about it.</p>
+    <script>
+      <apex:outputText value="{! someVariable }" />
+    </script>
+</apex:page>

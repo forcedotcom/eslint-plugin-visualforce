@@ -1,0 +1,7 @@
+<apex:page>
+    <h1>Congratulations</h1>
+    This is your new Apex Page: HelloWorld
+    <script>
+      var fooz =  {! apexVariable }
+    </script>
+</apex:page>
