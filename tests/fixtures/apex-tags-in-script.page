@@ -3,6 +3,8 @@
     <p>Some developers use VF tags such as &lt;apex:repeat&gt; within &lt;script&gt; to iterate over arrays.</p>
     <p>It is a bad practice, so the linter will complain about it.</p>
     <script>
-      <apex:outputText value="{! someVariable }" />
+      <apex:repeat value="{! someArray }" var="entry">
+          var foo = {! entry }
+      </apex:repeat>
     </script>
 </apex:page>

@@ -77,13 +77,15 @@ test('<apex:*> tags in Javascript', assert => {
     }
   })
 
+  console.log(messages)
+
   assert.deepEqual(messages[0], { ruleId: 'visualforce/vf-no-apex-tags',
     severity: 2,
     message: 'VisualForce standard components (<apex:*> tags) are not allowed in Javascript',
     line: 6,
     column: 7,
     nodeType: 'JSXElement',
-    source: '<apex:outputText value="{! someVariable }" />'
+    source: '<apex:repeat value="{! someArray }" var="entry">'
   })
 
 })

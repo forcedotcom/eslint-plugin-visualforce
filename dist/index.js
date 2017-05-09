@@ -791,6 +791,7 @@ typeof global === "object" ? global : typeof window === "object" ? window : type
  * or https://opensource.org/licenses/BSD-3-Clause
  */
 
+var acornVFEL = __webpack_require__(6);
 var proxyquire = __webpack_require__(9);
 var path = __webpack_require__(8);
 var extract = __webpack_require__(3);
@@ -870,14 +871,18 @@ function patchESLint() {
         return key.endsWith(path.join('espree', 'espree.js'));
       });
       espreePath = espreePath ? espreePath : 'espree';
-      var acornPath = Object.keys(requireCache).find(function (key) {
-        return key.endsWith(path.join('dist', 'acorn.js'));
+      var acornJSXPath = Object.keys(requireCache).find(function (key) {
+        return key.endsWith(path.join('acorn-jsx', 'inject.js'));
       });
-      acornPath = acornPath ? acornPath : 'acorn';
+      acornJSXPath = acornJSXPath ? acornJSXPath : 'acorn-jsx/inject';
 
-      var acorn =  true ? require.call(null, acornPath) : require(acornPath);
-      var acornVFEL = __webpack_require__(6)(acorn, true);
-      var espree = proxyquire(espreePath, { acorn: acornVFEL });
+      var acornJSX =  true ? require.call(null, acornJSXPath) : require(acornJSXPath);
+
+      var espree = proxyquire(espreePath, {
+        'acorn-jsx/inject': function acornJsxInject(acorn) {
+          return acornVFEL(acornJSX(acorn), true);
+        }
+      });
 
       var parserOptions = Object.assign({}, config.parserOptions, {
         loc: true,

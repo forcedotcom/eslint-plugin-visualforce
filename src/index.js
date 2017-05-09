@@ -5,6 +5,7 @@
  * or https://opensource.org/licenses/BSD-3-Clause
  */
 
+const acornVFEL = require('@salesforce/acorn-visualforce/dist/inject')
 const proxyquire = require('proxyquire');
 const path = require('path')
 const extract = require('./extract')
@@ -85,12 +86,14 @@ function patchESLint() {
       // parsing the source code with the patched espree
       let espreePath = Object.keys(requireCache).find(key => key.endsWith(path.join('espree', 'espree.js')))
       espreePath = espreePath ? espreePath : 'espree'
-      let acornPath = Object.keys(requireCache).find(key => key.endsWith(path.join('dist', 'acorn.js')))
-      acornPath = acornPath ? acornPath : 'acorn'
+      let acornJSXPath = Object.keys(requireCache).find(key => key.endsWith(path.join('acorn-jsx', 'inject.js')))
+      acornJSXPath = acornJSXPath ? acornJSXPath : 'acorn-jsx/inject'
 
-      const acorn = typeof(__non_webpack_require__)!=='undefined' ? __non_webpack_require__.call(null, acornPath) : require(acornPath)
-      const acornVFEL = require('@salesforce/acorn-visualforce/dist/inject')(acorn, true)
-      const espree = proxyquire(espreePath, { acorn: acornVFEL })
+      const acornJSX = typeof(__non_webpack_require__)!=='undefined' ? __non_webpack_require__.call(null, acornJSXPath) : require(acornJSXPath)
+
+      const espree = proxyquire(espreePath, {
+        'acorn-jsx/inject': acorn => acornVFEL(acornJSX(acorn), true)
+      })
 
       const parserOptions = Object.assign({}, config.parserOptions, {
         loc: true,
