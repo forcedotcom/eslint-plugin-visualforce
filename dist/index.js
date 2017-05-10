@@ -785,10 +785,10 @@ typeof global === "object" ? global : typeof window === "object" ? window : type
 
 
 /**
- * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @author Benoît Zugmeyer, Marat Vyshegorodtsev
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
 
 var acornVFEL = __webpack_require__(6);
@@ -883,6 +883,8 @@ function patchESLint() {
           return acornVFEL(acornJSX(acorn), true);
         }
       });
+
+      espree.VisitorKeys = Object.assign({}, espree.VisitorKeys, { Literal: ["vfelExpressions"] });
 
       var parserOptions = Object.assign({}, config.parserOptions, {
         loc: true,
@@ -981,10 +983,10 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
- * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @author Benoît Zugmeyer, Marat Vyshegorodtsev
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
 
 function lineStarts(str) {
@@ -1148,10 +1150,10 @@ module.exports = function () {
 var _marked = [dedent].map(regeneratorRuntime.mark);
 
 /**
- * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @author Benoît Zugmeyer, Marat Vyshegorodtsev
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
 
 var htmlparser2 = __webpack_require__(7);
@@ -1385,20 +1387,18 @@ module.exports = extract;
 /**
  * @fileoverview Rule to disallow VFEL merge fields as atomic expressions
  * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
-
-// TODO implement merge fields inside JSX Elements (see: https://github.com/eslint/espree/issues/334)
 
 module.exports = {
   meta: {
     docs: {
       description: 'disallow <apex:*> tags inside <script> tags',
       category: 'Possible Errors',
-      recommended: false },
-    //fixable: 'code',
+      recommended: true
+    },
     schema: [] },
   create(context) {
     return {
@@ -1422,9 +1422,9 @@ module.exports = {
 /**
  * @fileoverview Rule to disallow VFEL merge fields as atomic expressions
  * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
 
 module.exports = {

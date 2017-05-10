@@ -1,8 +1,8 @@
 /**
- * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @author Benoît Zugmeyer, Marat Vyshegorodtsev
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
 
 const acornVFEL = require('@salesforce/acorn-visualforce/dist/inject')
@@ -94,6 +94,8 @@ function patchESLint() {
       const espree = proxyquire(espreePath, {
         'acorn-jsx/inject': acorn => acornVFEL(acornJSX(acorn), true)
       })
+
+      espree.VisitorKeys = Object.assign({}, espree.VisitorKeys, { Literal: [ "vfelExpressions" ] })
 
       const parserOptions = Object.assign({}, config.parserOptions, {
         loc: true,

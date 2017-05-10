@@ -19,7 +19,7 @@
     "eslint-plugin"
   ],
   "author": "Salesforce",
-  "license": "BSD-3-Clause",
+  "license": "ISC",
   "bugs": {
     "url": "https://github.com/forcedotcom/eslint-plugin-visualforce/issues"
   },

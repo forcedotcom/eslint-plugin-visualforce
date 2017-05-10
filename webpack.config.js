@@ -1,8 +1,8 @@
 /**
  * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
 
 const path = require('path')

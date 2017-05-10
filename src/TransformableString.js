@@ -1,10 +1,10 @@
 /**
- * @author Marat Vyshegorodtsev
- * @license BSD-3-Clause
+ * @author Benoît Zugmeyer, Marat Vyshegorodtsev
+ * @license ISC
  * For full license text, see LICENSE file in the repo root
- * or https://opensource.org/licenses/BSD-3-Clause
+ * or https://opensource.org/licenses/ISC
  */
- 
+
 function lineStarts (str) {
   const result = [ 0 ]
   const re = /\r\n|\r|\n/g

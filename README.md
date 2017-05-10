@@ -7,7 +7,7 @@ This plugin is a heavily modified fork of [`eslint-plugin-html`](https://github.
 
 ## License
 
-This plugin is issued under the [BSD-3-Clause](./LICENSE) license.
+This plugin is issued under the [ISC](./LICENSE) license.
 
 ## Usage
 
@@ -36,4 +36,4 @@ documentation](http://eslint.org/docs/user-guide/command-line-interface#ext).
 
 ## Configuring linter-eslint package for the Atom editor
 
-TODO
+If the [`language-salesforce`](https://atom.io/packages/language-salesforce) plugin is installed simply add `source.visualforce` under "List of scopes to run ESLint on" at the `linter-eslint` configuration page.
