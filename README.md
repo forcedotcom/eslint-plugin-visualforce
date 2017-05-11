@@ -1,5 +1,8 @@
 # eslint-plugin-visualforce
 
+[![Build Status](https://travis-ci.org/forcedotcom/eslint-plugin-visualforce.svg?branch=master)](https://travis-ci.org/forcedotcom/eslint-plugin-visualforce)
+[![NPM version](https://img.shields.io/npm/v/@salesforce/eslint-plugin-visualforce.svg)](https://www.npmjs.com/package/@salesforce/eslint-plugin-visualforce)
+
 This [`ESLint`](https://eslint.org) plugin extracts and lints scripts from VisualForce pages.
 
 It supports VisualForce Expression Language merge fields within the JS syntax.
