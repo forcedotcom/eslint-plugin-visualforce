@@ -1,0 +1,8 @@
+<apex:page>
+    <h1>Congratulations</h1>
+    This is your new Apex Page: HelloWorld
+    <script>
+      var foo =  '{! apexVariable }'
+      var bar =  "{! IF(LEN(apexVariable)>5, 'bazinga', apexVariable) }"
+    </script>
+</apex:page>

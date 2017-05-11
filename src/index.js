@@ -9,12 +9,12 @@ const acornVFEL = require('@salesforce/acorn-visualforce/dist/inject')
 const proxyquire = require('proxyquire');
 const path = require('path')
 const extract = require('./extract')
-
 // If you pack the plugin using webpack, the node require function is not available directly
 /* global __non_webpack_require__ */
 const requireCache = typeof(__non_webpack_require__)!=='undefined' ? __non_webpack_require__.cache : require.cache
 
-const defaultVisualForceExtensions = [ '.page', '.component' ]
+const visualForceExtensions = [ '.page', '.component' ]
+
 
 function getPluginSettings (settings) {
 
@@ -42,7 +42,6 @@ function getPluginSettings (settings) {
 
 
   return {
-    visualForceExtensions: defaultVisualForceExtensions,
     indent,
     reportBadIndent,
   }
@@ -57,10 +56,16 @@ function patchESLint() {
   const {exports: SourceCode} = requireCache[path.join(eslintPath, '..', 'util', 'source-code.js')]
   const {exports: SourceCodeFixer} = requireCache[path.join(eslintPath, '..', 'util', 'source-code-fixer.js')]
 
+
   if (typeof eslint.verify !== 'function' || !SourceCode || !SourceCodeFixer)
     throw new Error('eslint-plugin-visualforce error: Could not locate eslint in the require() cache. '
                     + 'If you think it is a bug, please file a report at '
                     + 'https://github.com/forcedotcom/eslint-plugin-visualforce/issues')
+
+  // const estraversePath = Object.keys(requireCache).find(key => key.endsWith(path.join('estraverse', 'estraverse.js')))
+  // if(!estraversePath) throw new Error('Could not find estraverse in require.cache')
+  // const estraverse = requireCache[estraversePath].exports
+  // estraverse.VisitorKeys = Object.assign({}, estraverse.VisitorKeys, VFELVisitorKeys)
 
   const sourceCodeForMessages = new WeakMap()
 
@@ -75,7 +80,7 @@ function patchESLint() {
     const extension = path.extname(filename || '')
 
     const pluginSettings = getPluginSettings(config.settings || {})
-    const isVisualForce = pluginSettings.visualForceExtensions.indexOf(extension) >= 0
+    const isVisualForce = visualForceExtensions.indexOf(extension) >= 0
 
     if (typeof textOrSourceCode === 'string' && isVisualForce) {
       const currentInfos = extract(
@@ -95,7 +100,6 @@ function patchESLint() {
         'acorn-jsx/inject': acorn => acornVFEL(acornJSX(acorn), true)
       })
 
-      espree.VisitorKeys = Object.assign({}, espree.VisitorKeys, { Literal: [ "vfelExpressions" ] })
 
       const parserOptions = Object.assign({}, config.parserOptions, {
         loc: true,
@@ -105,8 +109,8 @@ function patchESLint() {
         comment: true,
         filePath: filename,
       })
+
       const ast = espree.parse(String(currentInfos.code), parserOptions)
-      //console.log('ast: ', JSON.stringify(ast, 4, 4))
       const sourceCode = new SourceCode(String(currentInfos.code), ast)
 
       messages = remapMessages(
@@ -192,12 +196,12 @@ function remapMessages (messages, code, reportBadIndent, badIndentationLines) {
   return newMessages
 }
 
-
 patchESLint()
 
 module.exports = {
   rules: {
     'vf-no-atom-expr': require('./rules/vf-no-atom-expr'),
     'vf-no-apex-tags': require('./rules/vf-no-apex-tags'),
+    'vf-jsencode': require('./rules/vf-jsencode'),
   }
 }

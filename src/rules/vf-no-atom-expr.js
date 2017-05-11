@@ -18,14 +18,18 @@ module.exports = {
   },
   create (context) {
     return {
-      VFELExpression: node => context.report({
-        message: 'VisualForce merge fields should only be allowed in strings',
-        node,
-        fix(fixer) {
-          const vfelText = context.getSourceCode().getText(node)
-          return fixer.replaceText(node, `JSON.parse('${vfelText}')`)
-        }
-      })
+      VFELExpression: node => {
+        if(node.parent && node.parent.type !== 'MetaString')
+          return context.report({
+            message: 'VisualForce merge fields should only be allowed in strings',
+            node,
+            fix(fixer) {
+              const vfelText = context.getSourceCode().getText(node)
+              return fixer.replaceText(node, `JSON.parse('${vfelText}')`)
+            }
+          })
+        return null
+      }
     }
   },
 }

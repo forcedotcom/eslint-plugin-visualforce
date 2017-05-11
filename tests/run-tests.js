@@ -77,8 +77,6 @@ test('<apex:*> tags in Javascript', assert => {
     }
   })
 
-  console.log(messages)
-
   assert.deepEqual(messages[0], { ruleId: 'visualforce/vf-no-apex-tags',
     severity: 2,
     message: 'VisualForce standard components (<apex:*> tags) are not allowed in Javascript',
@@ -89,3 +87,23 @@ test('<apex:*> tags in Javascript', assert => {
   })
 
 })
+
+// test('JSENCODE of Apex variables', assert => {
+//   assert.plan(1)
+//
+//   const messages = execute('jsencode.page', {
+//     rules: {
+//       'visualforce/vf-jsencode': 'error'
+//     }
+//   })
+//
+//   assert.deepEqual(messages[0], { ruleId: 'visualforce/vf-jsencode',
+//     severity: 2,
+//     message: 'JSENCODE() must be applied to all rendered Apex variables',
+//     line: 5,
+//     column: 22,
+//     nodeType: 'VFELIdentifier',
+//     source: "var foo =  '{! apexVariable }'"
+//   })
+//
+// })

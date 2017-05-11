@@ -64,7 +64,7 @@ module.exports =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 10);
+/******/ 	return __webpack_require__(__webpack_require__.s = 11);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -791,16 +791,15 @@ typeof global === "object" ? global : typeof window === "object" ? window : type
  * or https://opensource.org/licenses/ISC
  */
 
-var acornVFEL = __webpack_require__(6);
-var proxyquire = __webpack_require__(9);
-var path = __webpack_require__(8);
+var acornVFEL = __webpack_require__(7);
+var proxyquire = __webpack_require__(10);
+var path = __webpack_require__(9);
 var extract = __webpack_require__(3);
-
 // If you pack the plugin using webpack, the node require function is not available directly
 /* global __non_webpack_require__ */
 var requireCache =  true ? require.cache : require.cache;
 
-var defaultVisualForceExtensions = ['.page', '.component'];
+var visualForceExtensions = ['.page', '.component'];
 
 function getPluginSettings(settings) {
 
@@ -826,7 +825,6 @@ function getPluginSettings(settings) {
   };
 
   return {
-    visualForceExtensions: defaultVisualForceExtensions,
     indent,
     reportBadIndent
   };
@@ -846,6 +844,11 @@ function patchESLint() {
 
   if (typeof eslint.verify !== 'function' || !SourceCode || !SourceCodeFixer) throw new Error('eslint-plugin-visualforce error: Could not locate eslint in the require() cache. ' + 'If you think it is a bug, please file a report at ' + 'https://github.com/forcedotcom/eslint-plugin-visualforce/issues');
 
+  // const estraversePath = Object.keys(requireCache).find(key => key.endsWith(path.join('estraverse', 'estraverse.js')))
+  // if(!estraversePath) throw new Error('Could not find estraverse in require.cache')
+  // const estraverse = requireCache[estraversePath].exports
+  // estraverse.VisitorKeys = Object.assign({}, estraverse.VisitorKeys, VFELVisitorKeys)
+
   var sourceCodeForMessages = new WeakMap();
 
   var verify = eslint.verify;
@@ -861,7 +864,7 @@ function patchESLint() {
     var extension = path.extname(filename || '');
 
     var pluginSettings = getPluginSettings(config.settings || {});
-    var isVisualForce = pluginSettings.visualForceExtensions.indexOf(extension) >= 0;
+    var isVisualForce = visualForceExtensions.indexOf(extension) >= 0;
 
     if (typeof textOrSourceCode === 'string' && isVisualForce) {
       var currentInfos = extract(textOrSourceCode, pluginSettings.indent, false // isXML
@@ -884,8 +887,6 @@ function patchESLint() {
         }
       });
 
-      espree.VisitorKeys = Object.assign({}, espree.VisitorKeys, { Literal: ["vfelExpressions"] });
-
       var parserOptions = Object.assign({}, config.parserOptions, {
         loc: true,
         range: true,
@@ -894,8 +895,8 @@ function patchESLint() {
         comment: true,
         filePath: filename
       });
+
       var ast = espree.parse(String(currentInfos.code), parserOptions);
-      //console.log('ast: ', JSON.stringify(ast, 4, 4))
       var sourceCode = new SourceCode(String(currentInfos.code), ast);
 
       messages = remapMessages(localVerify(sourceCode), currentInfos.code, pluginSettings.reportBadIndent, currentInfos.badIndentationLines);
@@ -966,8 +967,9 @@ patchESLint();
 
 module.exports = {
   rules: {
-    'vf-no-atom-expr': __webpack_require__(5),
-    'vf-no-apex-tags': __webpack_require__(4)
+    'vf-no-atom-expr': __webpack_require__(6),
+    'vf-no-apex-tags': __webpack_require__(5),
+    'vf-jsencode': __webpack_require__(4)
   }
 };
 
@@ -1156,7 +1158,7 @@ var _marked = [dedent].map(regeneratorRuntime.mark);
  * or https://opensource.org/licenses/ISC
  */
 
-var htmlparser2 = __webpack_require__(7);
+var htmlparser2 = __webpack_require__(8);
 var TransformableString = __webpack_require__(2);
 
 function iterateScripts(code, options, onChunk) {
@@ -1385,6 +1387,56 @@ module.exports = extract;
 
 
 /**
+ * @fileoverview Rule to make sure all Apex variables are JSENCODEd in strings
+ * @author Marat Vyshegorodtsev
+ * @license ISC
+ * For full license text, see LICENSE file in the repo root
+ * or https://opensource.org/licenses/ISC
+ */
+
+// TODO WIP
+
+var untaintingParents = {
+  VFELCallExpression(node) {
+    var safeFunctions = ['LEN'];
+    return safeFunctions.includes(node.callee.name);
+  }
+};
+
+module.exports = {
+  meta: {
+    docs: {
+      description: 'disallow VFEL merge fields as atomic expressions',
+      category: 'Possible Errors',
+      recommended: true
+    },
+    fixable: 'code',
+    schema: [] },
+  create(context) {
+    return {
+      VFELIdentifier: function VFELIdentifier(node) {
+        var untaintingParent = untaintingParents[node.parent.type];
+        if (untaintingParent && untaintingParent(node.parent)) return null;
+        return context.report({
+          message: 'JSENCODE() must be applied to all rendered Apex variables',
+          node,
+          fix(fixer) {
+            return null;
+          }
+        });
+      }
+    };
+  }
+};
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
  * @fileoverview Rule to disallow VFEL merge fields as atomic expressions
  * @author Marat Vyshegorodtsev
  * @license ISC
@@ -1413,7 +1465,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1439,7 +1491,7 @@ module.exports = {
   create(context) {
     return {
       VFELExpression: function VFELExpression(node) {
-        return context.report({
+        if (node.parent && node.parent.type !== 'MetaString') return context.report({
           message: 'VisualForce merge fields should only be allowed in strings',
           node,
           fix(fixer) {
@@ -1447,37 +1499,38 @@ module.exports = {
             return fixer.replaceText(node, `JSON.parse('${vfelText}')`);
           }
         });
+        return null;
       }
     };
   }
 };
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports) {
 
 module.exports = require("@salesforce/acorn-visualforce/dist/inject");
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports) {
 
 module.exports = require("htmlparser2");
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 module.exports = require("path");
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports) {
 
 module.exports = require("proxyquire");
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(0);
