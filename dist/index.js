@@ -1196,6 +1196,9 @@ function iterateScripts(code, options, onChunk) {
 
   var parser = new htmlparser2.Parser({
 
+    // TODO on* attributes
+    // https://www.w3schools.com/jsref/dom_obj_event.asp
+
     onopentag(name) {
       // Test if current tag is a valid <script> tag.
       if (name !== 'script') return;
@@ -1418,9 +1421,7 @@ var untaintingParents = {
     var funcName = parentNode.callee.name.toUpperCase();
 
     // checking against safe functions
-    if (safeFunctions.includes(funcName) && parentNode.arguments.includes(node)) {
-      return true;
-    }
+    if (safeFunctions.indexOf(funcName) >= 0 && parentNode.arguments.indexOf(node) >= 0) return true;
 
     // Special cases
     // IF's first argument is condition, does not produce output, second and third are unsafe
@@ -1438,7 +1439,7 @@ var untaintingParents = {
     return true;
   },
   VFELBinaryExpression(parentNode) {
-    return safeBitwiseOperators.includes(parentNode.operator);
+    return safeBitwiseOperators.indexOf(parentNode.operator) >= 0;
   },
   UnaryExpression() {
     // Only NOT and !, both boolean
@@ -1455,9 +1456,7 @@ function checkIdentifier(node, context) {
   // TODO check there are no other user controlled system vars, e.g. $Resource
   if (node.name.startsWith('$') && !node.name.toUpperCase().startsWith('$CURRENTPAGE.PARAMETERS.')) return;
 
-  var tainted = isTainting(node);
-
-  if (tainted) context.report({
+  if (isTainting(node)) context.report({
     message: 'JSENCODE() must be applied to all rendered Apex variables',
     node,
     fix(fixer) {
@@ -1479,7 +1478,6 @@ function isTainting(node) {
 
   // The parent expression untaints the whole subtree
   if (untainter && untainter(parent, node)) {
-    // console.log(`${parent.type} untainted ${node.type} (name: ${node.name})`)
     return false;
   } else return isTainting(parent);
 }
@@ -1487,7 +1485,7 @@ function isTainting(node) {
 module.exports = {
   meta: {
     docs: {
-      description: 'disallow VFEL merge fields as atomic expressions',
+      description: 'Require all unsafe Apex variables to be JSENCODEd',
       category: 'Possible Errors',
       recommended: true
     },

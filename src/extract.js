@@ -46,6 +46,9 @@ function iterateScripts (code, options, onChunk) {
 
   const parser = new htmlparser2.Parser({
 
+    // TODO on* attributes
+    // https://www.w3schools.com/jsref/dom_obj_event.asp
+
     onopentag (name) {
       // Test if current tag is a valid <script> tag.
       if (name !== 'script')

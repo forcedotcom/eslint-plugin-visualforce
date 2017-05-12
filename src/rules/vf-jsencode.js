@@ -31,9 +31,8 @@ const untaintingParents = {
     const funcName = parentNode.callee.name.toUpperCase()
 
     // checking against safe functions
-    if (safeFunctions.includes(funcName) && parentNode.arguments.includes(node)) {
+    if (safeFunctions.indexOf(funcName)>=0 && parentNode.arguments.indexOf(node)>=0)
       return true
-    }
 
     // Special cases
     // IF's first argument is condition, does not produce output, second and third are unsafe
@@ -52,7 +51,7 @@ const untaintingParents = {
     return true
   },
   VFELBinaryExpression(parentNode) {
-    return safeBitwiseOperators.includes(parentNode.operator)
+    return safeBitwiseOperators.indexOf(parentNode.operator)>=0
   },
   UnaryExpression() {
     // Only NOT and !, both boolean
@@ -70,9 +69,7 @@ function checkIdentifier(node, context) {
   if (node.name.startsWith('$') && !node.name.toUpperCase().startsWith('$CURRENTPAGE.PARAMETERS.') )
     return
 
-  const tainted = isTainting(node)
-
-  if (tainted)
+  if (isTainting(node))
     context.report({
       message: 'JSENCODE() must be applied to all rendered Apex variables',
       node,
@@ -95,7 +92,6 @@ function isTainting (node) {
 
   // The parent expression untaints the whole subtree
   if (untainter && untainter(parent, node)) {
-    // console.log(`${parent.type} untainted ${node.type} (name: ${node.name})`)
     return false
   } else
     return isTainting(parent)
@@ -105,7 +101,7 @@ function isTainting (node) {
 module.exports = {
   meta: {
     docs: {
-      description: 'disallow VFEL merge fields as atomic expressions',
+      description: 'Require all unsafe Apex variables to be JSENCODEd',
       category: 'Possible Errors',
       recommended: true,
     },
