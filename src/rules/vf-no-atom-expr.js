@@ -20,7 +20,7 @@ module.exports = {
     return {
       VFELExpression: node => {
         if(node.parent && node.parent.type !== 'MetaString')
-          return context.report({
+          context.report({
             message: 'VisualForce merge fields should only be allowed in strings',
             node,
             fix(fixer) {
@@ -28,7 +28,6 @@ module.exports = {
               return fixer.replaceText(node, `JSON.parse('${vfelText}')`)
             }
           })
-        return null
       }
     }
   },

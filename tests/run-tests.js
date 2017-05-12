@@ -88,22 +88,48 @@ test('<apex:*> tags in Javascript', assert => {
 
 })
 
-// test('JSENCODE of Apex variables', assert => {
-//   assert.plan(1)
-//
-//   const messages = execute('jsencode.page', {
-//     rules: {
-//       'visualforce/vf-jsencode': 'error'
-//     }
-//   })
-//
-//   assert.deepEqual(messages[0], { ruleId: 'visualforce/vf-jsencode',
-//     severity: 2,
-//     message: 'JSENCODE() must be applied to all rendered Apex variables',
-//     line: 5,
-//     column: 22,
-//     nodeType: 'VFELIdentifier',
-//     source: "var foo =  '{! apexVariable }'"
-//   })
-//
-// })
+test('JSENCODE of Apex variables', assert => {
+  assert.plan(4)
+
+  const messages = execute('jsencode.page', {
+    rules: {
+      'visualforce/vf-jsencode': 'error'
+    }
+  })
+
+  assert.equals(messages.length, 3, 'There are exactly 3 tainted variables')
+
+  assert.deepEqual(messages[0], {
+    line: 5,
+    column: 22,
+    fix: { range: [ 118, 130 ], text: 'JSENCODE(apexVariable)' },
+    message: 'JSENCODE() must be applied to all rendered Apex variables',
+    nodeType: 'VFELIdentifier',
+    ruleId: 'visualforce/vf-jsencode',
+    severity: 2,
+    source: 'var foo =  \'{! apexVariable }\'',
+  })
+
+  assert.deepEqual(messages[1], {
+    line: 6,
+    column: 57,
+    fix: { range: [ 190, 205 ], text: 'JSENCODE(taintedVariable)' },
+    message: 'JSENCODE() must be applied to all rendered Apex variables',
+    nodeType: 'VFELIdentifier',
+    ruleId: 'visualforce/vf-jsencode',
+    severity: 2,
+    source: 'var bar =  "{! IF(LEN(apexVariable)>5, \'bazinga\', taintedVariable) }"',
+  })
+
+  assert.deepEqual(messages[2], {
+    line: 7,
+    column: 44,
+    fix: { range: [ 253, 259 ], text: 'JSENCODE(result)' },
+    message: 'JSENCODE() must be applied to all rendered Apex variables',
+    nodeType: 'VFELIdentifier',
+    ruleId: 'visualforce/vf-jsencode',
+    severity: 2,
+    source: 'var baz = "{! CASE(condition, value, result) }"',
+  })
+
+})

@@ -1,6 +1,6 @@
 # JSENCODE all Apex variables
 
-TODO Work in progress
+All Apex variables (controller fields) rendered inside Javascript strings via merge fields [must be escaped using JSENCODE() function](https://developer.salesforce.com/page/Secure_Coding_Cross_Site_Scripting#JSENCODE).
 
 ## Rule details
 

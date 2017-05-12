@@ -3,6 +3,7 @@
     This is your new Apex Page: HelloWorld
     <script>
       var foo =  '{! apexVariable }'
-      var bar =  "{! IF(LEN(apexVariable)>5, 'bazinga', apexVariable) }"
+      var bar =  "{! IF(LEN(apexVariable)>5, 'bazinga', taintedVariable) }"
+      var baz = "{! CASE(condition, value, result) }"
     </script>
 </apex:page>
