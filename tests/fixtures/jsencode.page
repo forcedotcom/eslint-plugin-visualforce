@@ -5,5 +5,7 @@
       var foo =  '{! apexVariable }'
       var bar =  "{! IF(LEN(apexVariable)>5, 'bazinga', taintedVariable) }"
       var baz = "{! CASE(condition, value, result) }"
+      var safeSystemVar = '{! $Permission.canSeeExecutiveData }'
+      var unsafeSystemVar = '{! $CurrentPage.parameters.retURL }'
     </script>
 </apex:page>

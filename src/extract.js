@@ -48,6 +48,11 @@ function iterateScripts (code, options, onChunk) {
 
     // TODO on* attributes
     // https://www.w3schools.com/jsref/dom_obj_event.asp
+    // apex tags with escape="false": apex:outputtext, apex:pagemessage, apex:pagemessages, apex:selectoption
+    // itemescaped="false"
+    // https://github.com/pmd/pmd/blob/master/pmd-visualforce/src/main/java/net/sourceforge/pmd/lang/vf/rule/security/VfUnescapeElRule.java
+    //
+    // URLENCODE for <a, <apex:iframe, <iframe
 
     onopentag (name) {
       // Test if current tag is a valid <script> tag.

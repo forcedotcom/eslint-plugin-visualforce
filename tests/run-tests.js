@@ -89,7 +89,7 @@ test('<apex:*> tags in Javascript', assert => {
 })
 
 test('JSENCODE of Apex variables', assert => {
-  assert.plan(4)
+  assert.plan(5)
 
   const messages = execute('jsencode.page', {
     rules: {
@@ -97,7 +97,7 @@ test('JSENCODE of Apex variables', assert => {
     }
   })
 
-  assert.equals(messages.length, 3, 'There are exactly 3 tainted variables')
+  assert.equals(messages.length, 4, 'There are exactly 4 tainted variables')
 
   assert.deepEqual(messages[0], {
     line: 5,
@@ -130,6 +130,17 @@ test('JSENCODE of Apex variables', assert => {
     ruleId: 'visualforce/vf-jsencode',
     severity: 2,
     source: 'var baz = "{! CASE(condition, value, result) }"',
+  })
+
+  assert.deepEqual(messages[3], {
+    line: 9,
+    column: 33,
+    fix: { range: [ 361, 391 ], text: 'JSENCODE($CurrentPage.parameters.retURL)' },
+    message: 'JSENCODE() must be applied to all rendered Apex variables',
+    nodeType: 'VFELIdentifier',
+    ruleId: 'visualforce/vf-jsencode',
+    severity: 2,
+    source: 'var unsafeSystemVar = \'{! $CurrentPage.parameters.retURL }\'',
   })
 
 })

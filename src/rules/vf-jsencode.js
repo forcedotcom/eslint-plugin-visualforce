@@ -63,21 +63,25 @@ const untaintingParents = {
   }
 }
 
-function checkIdentifier(node, context) {
-  // Not checking taint for system variables except the only user-controlled one
-  // TODO check there are no other user controlled system vars, e.g. $Resource
-  if (node.name.startsWith('$') && !node.name.toUpperCase().startsWith('$CURRENTPAGE.PARAMETERS.') )
-    return
+function isSafeSystemIdentifier(identifier) {
+  const systemVariable = identifier.match(/^(\$[^.]+)\./)
+  if(!systemVariable) return false
 
-  if (isTainting(node))
-    context.report({
-      message: 'JSENCODE() must be applied to all rendered Apex variables',
-      node,
-      fix(fixer) {
-        const vfelText = context.getSourceCode().getText(node)
-        return fixer.replaceText(node, `JSENCODE(${vfelText})`)
-      }
-    })
+  switch (systemVariable[1]) {
+  case '$ACTION':
+  case '$API':
+  case '$ASSET':
+  case '$COMPONENT':
+  case '$PAGE':
+  case '$PERMISSION':
+  case '$RESOURCE':
+  case '$SCONTROL':
+  case '$SITE':
+  case '$SYSTEM':
+    return true
+  default:
+    return false
+  }
 }
 
 function isTainting (node) {
@@ -95,6 +99,22 @@ function isTainting (node) {
     return false
   } else
     return isTainting(parent)
+}
+
+function checkIdentifier(node, context) {
+  // Not checking taint for system variables except the only user-controlled one
+  if (isSafeSystemIdentifier(node.name.toUpperCase()))
+    return
+
+  if (isTainting(node))
+    context.report({
+      message: 'JSENCODE() must be applied to all rendered Apex variables',
+      node,
+      fix(fixer) {
+        const vfelText = context.getSourceCode().getText(node)
+        return fixer.replaceText(node, `JSENCODE(${vfelText})`)
+      }
+    })
 }
 
 
