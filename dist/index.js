@@ -792,8 +792,8 @@ typeof global === "object" ? global : typeof window === "object" ? window : type
  */
 
 var acornVFEL = __webpack_require__(7);
-var proxyquire = __webpack_require__(10);
-var path = __webpack_require__(9);
+var Module = __webpack_require__(9);
+var path = __webpack_require__(10);
 var extract = __webpack_require__(3);
 // If you pack the plugin using webpack, the node require function is not available directly
 /* global __non_webpack_require__ */
@@ -881,11 +881,15 @@ function patchESLint() {
 
       var acornJSX =  true ? require.call(null, acornJSXPath) : require(acornJSXPath);
 
-      var espree = proxyquire(espreePath, {
-        'acorn-jsx/inject': function acornJsxInject(acorn) {
+      var originalLoad = Module._load;
+      Module._load = function (request) {
+        if (request === 'acorn-jsx/inject') return function (acorn) {
           return acornVFEL(acornJSX(acorn), true);
-        }
-      });
+        };
+        return originalLoad.apply(this, arguments);
+      };
+      var espree =  true ? require.call(null, espreePath) : require(espreePath);
+      Module._load = originalLoad;
 
       var parserOptions = Object.assign({}, config.parserOptions, {
         loc: true,
@@ -1616,13 +1620,13 @@ module.exports = require("htmlparser2");
 /* 9 */
 /***/ (function(module, exports) {
 
-module.exports = require("path");
+module.exports = require("module");
 
 /***/ }),
 /* 10 */
 /***/ (function(module, exports) {
 
-module.exports = require("proxyquire");
+module.exports = require("path");
 
 /***/ }),
 /* 11 */

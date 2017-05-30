@@ -6,7 +6,7 @@
  */
 
 const acornVFEL = require('@salesforce/acorn-visualforce/dist/inject')
-const proxyquire = require('proxyquire');
+const Module = require('module')
 const path = require('path')
 const extract = require('./extract')
 // If you pack the plugin using webpack, the node require function is not available directly
@@ -96,9 +96,14 @@ function patchESLint() {
 
       const acornJSX = typeof(__non_webpack_require__)!=='undefined' ? __non_webpack_require__.call(null, acornJSXPath) : require(acornJSXPath)
 
-      const espree = proxyquire(espreePath, {
-        'acorn-jsx/inject': acorn => acornVFEL(acornJSX(acorn), true)
-      })
+      const originalLoad = Module._load
+      Module._load = function(request){
+        if (request === 'acorn-jsx/inject')
+          return acorn => acornVFEL(acornJSX(acorn), true)
+        return originalLoad.apply(this, arguments);
+      };
+      const espree = typeof(__non_webpack_require__)!=='undefined' ? __non_webpack_require__.call(null, espreePath) : require(espreePath)
+      Module._load = originalLoad
 
 
       const parserOptions = Object.assign({}, config.parserOptions, {
