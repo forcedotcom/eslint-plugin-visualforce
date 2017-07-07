@@ -60,7 +60,13 @@ const untaintingParents = {
   MapEntry(parentNode, node) {
     // keys are safe, values are not
     return parentNode.key === node
-  }
+  },
+  VFELMemberExpression() {
+    // VFELMemberExpressions such as field[selector] are not untainting
+    // However, JSENCODE should be applied to the expression itself,
+    // and not the selectors, so we untaint the members of this expression
+    return true
+  },
 }
 
 function isSafeSystemIdentifier(identifier) {
@@ -92,18 +98,20 @@ function isTainting (node) {
     return true
   }
 
-  const untainter = untaintingParents[parent.type]
+  const untainter = parent && untaintingParents[parent.type]
 
   // The parent expression untaints the whole subtree
-  if (untainter && untainter(parent, node)) {
+  if (untainter && untainter(parent, node))
     return false
-  } else
+  else
     return isTainting(parent)
 }
 
-function checkIdentifier(node, context) {
+function checkNode(node, context) {
+  //console.log(`identifier's `, node.name ,` parent is ${node.parent.type}`)
+
   // Not checking taint for system variables except the only user-controlled one
-  if (isSafeSystemIdentifier(node.name.toUpperCase()))
+  if (node.name && isSafeSystemIdentifier(node.name.toUpperCase()))
     return
 
   if (isTainting(node))
@@ -130,7 +138,8 @@ module.exports = {
   },
   create (context) {
     return {
-      VFELIdentifier: node => checkIdentifier(node, context),
+      VFELIdentifier: node => checkNode(node, context),
+      VFELMemberExpression: node => checkNode(node, context),
     }
   },
 }

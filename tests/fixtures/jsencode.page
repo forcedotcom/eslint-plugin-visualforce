@@ -7,5 +7,6 @@
       var baz = "{! CASE(condition, value, result) }"
       var safeSystemVar = '{! $Permission.canSeeExecutiveData }'
       var unsafeSystemVar = '{! $CurrentPage.parameters.retURL }'
+      var selectorExpression = "{! some.array[another[field]] }"
     </script>
 </apex:page>

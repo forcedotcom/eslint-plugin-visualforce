@@ -8,10 +8,9 @@
 const htmlparser2 = require('htmlparser2')
 const TransformableString = require('./TransformableString')
 
-function iterateScripts (code, options, onChunk) {
+function iterateScripts (code, onChunk) {
   if (!code) return
 
-  const xmlMode = options.xmlMode
   let index = 0
   let inScript = false
   let nextType = null
@@ -56,6 +55,11 @@ function iterateScripts (code, options, onChunk) {
 
     onopentag (name) {
       // Test if current tag is a valid <script> tag.
+      if (name === 'apex:repeat' && inScript) {
+        emitChunk('script', parser.startIndex)
+        emitChunk('apex:repeat', parser.endIndex + 1)
+        //console.log('open tag: ', code.slice(parser.startIndex, parser.endIndex+1));
+      }
       if (name !== 'script')
         return
       inScript = true
@@ -71,6 +75,12 @@ function iterateScripts (code, options, onChunk) {
     },
 
     onclosetag (name) {
+      if (name === 'apex:repeat' && inScript) {
+        emitChunk('script', parser.startIndex)
+        emitChunk('apex:repeat', parser.endIndex + 1)
+        // console.log('close tag: ', code.slice(parser.startIndex, parser.endIndex+1));
+      }
+
       if (name !== 'script' || !inScript)
         return
 
@@ -89,16 +99,16 @@ function iterateScripts (code, options, onChunk) {
       emitChunk('script', parser.endIndex + 1)
     },
 
-  }, { xmlMode: xmlMode === true })
+  }, { xmlMode: true })
 
   parser.parseComplete(code)
 
   emitChunk('html', parser.endIndex + 1, true)
 }
 
-function computeIndent (descriptor, previousHTML, slice) {
+function computeIndent (descriptor, previousHTML, codeSlice) {
   if (!descriptor) {
-    const indentMatch = /[\n\r]+([ \t]*)/.exec(slice)
+    const indentMatch = /[\n\r]+([ \t]*)/.exec(codeSlice)
     return indentMatch ? indentMatch[1] : ''
   }
 
@@ -109,12 +119,12 @@ function computeIndent (descriptor, previousHTML, slice) {
   return descriptor.spaces
 }
 
-function* dedent (indent, slice) {
+function* dedent (indent, codeSlice) {
   let hadNonEmptyLine = false
   const re = /(\r\n|\n|\r)([ \t]*)(.*)/g
 
   for(;;) {
-    const match = re.exec(slice)
+    const match = re.exec(codeSlice)
     if (!match) break
 
     const newLine = match[1]
@@ -150,41 +160,55 @@ function* dedent (indent, slice) {
   }
 }
 
-function extract (code, indentDescriptor, xmlMode) {
+function extract (code, indentDescriptor) {
   const badIndentationLines = []
+  const apexRepeatTags = []
   const transformedCode = new TransformableString(code)
   let lineNumber = 1
   let previousHTML = ''
 
-  iterateScripts(code, { xmlMode }, chunk => {
-    const slice = code.slice(chunk.start, chunk.end)
+  iterateScripts(code, chunk => {
+    const codeSlice = code.slice(chunk.start, chunk.end)
 
-    if (chunk.type === 'html' || chunk.type === 'cdata start' || chunk.type === 'cdata end') {
+    switch(chunk.type) {
+    case 'html':
+      previousHTML = codeSlice
+      // falls through
+    case 'apex:repeat':
+    case 'cdata start':
+    case 'cdata end': {
       const newLinesRe = /(?:\r\n|\n|\r)([^\r\n])?/g
       let lastEmptyLinesLength = 0
       for(;;) {
-        const match = newLinesRe.exec(slice)
+        const match = newLinesRe.exec(codeSlice)
         if (!match) break
         lineNumber += 1
         lastEmptyLinesLength = !match[1] ? lastEmptyLinesLength + match[0].length : 0
       }
       transformedCode.replace(chunk.start, chunk.end - lastEmptyLinesLength, '/* HTML */')
-      if (chunk.type === 'html') previousHTML = slice
-    } else if (chunk.type === 'script')
-      for (const action of dedent(computeIndent(indentDescriptor, previousHTML, slice), slice)) {
+      break
+    }
+    // case 'apex:repeat':
+    //   transformedCode.replace(chunk.start, chunk.end, `/* ${codeSlice} */`)
+    //   // TODO add message
+    //   break
+    case 'script':
+      for (const action of dedent(computeIndent(indentDescriptor, previousHTML, codeSlice), codeSlice)) {
         lineNumber += 1
         if (action.type === 'dedent')
           transformedCode.replace(chunk.start + action.from, chunk.start + action.to, '')
         else if (action.type === 'bad-indent')
           badIndentationLines.push(lineNumber)
-
       }
+      break;
+    }
 
-  })
+  }) // iterateScripts
 
   return {
     code: transformedCode,
     badIndentationLines,
+    apexRepeatTags,
   }
 }
 

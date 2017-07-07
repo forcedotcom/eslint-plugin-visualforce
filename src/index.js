@@ -83,11 +83,7 @@ function patchESLint() {
     const isVisualForce = visualForceExtensions.indexOf(extension) >= 0
 
     if (typeof textOrSourceCode === 'string' && isVisualForce) {
-      const currentInfos = extract(
-        textOrSourceCode,
-        pluginSettings.indent,
-        false // isXML
-      )
+      const currentInfos = extract(textOrSourceCode, pluginSettings.indent)
       // parsing the source code with the patched espree
       let espreePath = Object.keys(requireCache).find(key => key.endsWith(path.join('espree', 'espree.js')))
       espreePath = espreePath ? espreePath : 'espree'
@@ -114,6 +110,7 @@ function patchESLint() {
         comment: true,
         filePath: filename,
       })
+      //console.log('code: ', String(currentInfos.code));
 
       const ast = espree.parse(String(currentInfos.code), parserOptions)
       const sourceCode = new SourceCode(String(currentInfos.code), ast)
@@ -122,7 +119,8 @@ function patchESLint() {
         localVerify(sourceCode),
         currentInfos.code,
         pluginSettings.reportBadIndent,
-        currentInfos.badIndentationLines
+        currentInfos.badIndentationLines,
+        currentInfos.apexRepeatTags
       )
       sourceCodeForMessages.set(messages, textOrSourceCode)
     } else
@@ -148,7 +146,7 @@ function patchESLint() {
 
 }
 
-function remapMessages (messages, code, reportBadIndent, badIndentationLines) {
+function remapMessages (messages, code, reportBadIndent, badIndentationLines, apexRepeatTags) {
   const newMessages = []
 
   messages.forEach(message => {
@@ -192,6 +190,16 @@ function remapMessages (messages, code, reportBadIndent, badIndentationLines) {
         severity: reportBadIndent === true ? 2 : reportBadIndent,
       })
     })
+
+  apexRepeatTags.forEach(location => {
+    newMessages.push({
+      message: '<apex:repeat> tags are not allowed in Javascript',
+      line: location.line,
+      column: location.column,
+      ruleId: '(visualforce plugin)',
+      severity: 2,
+    })
+  })
 
 
   newMessages.sort((ma, mb) => {

@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/eslint-plugin-visualforce",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An ESLint plugin to extract and lint scripts from VisualForce pages",
   "main": "dist/index.js",
   "scripts": {
@@ -25,7 +25,7 @@
   },
   "homepage": "https://github.com/forcedotcom/eslint-plugin-visualforce#readme",
   "dependencies": {
-    "@salesforce/acorn-visualforce": "^1.4.1",
+    "@salesforce/acorn-visualforce": "^1.4.2",
     "htmlparser2": "^3.9.2"
   },
   "devDependencies": {

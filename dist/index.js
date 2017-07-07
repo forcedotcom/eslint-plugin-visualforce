@@ -867,8 +867,7 @@ function patchESLint() {
     var isVisualForce = visualForceExtensions.indexOf(extension) >= 0;
 
     if (typeof textOrSourceCode === 'string' && isVisualForce) {
-      var currentInfos = extract(textOrSourceCode, pluginSettings.indent, false // isXML
-      );
+      var currentInfos = extract(textOrSourceCode, pluginSettings.indent);
       // parsing the source code with the patched espree
       var espreePath = Object.keys(requireCache).find(function (key) {
         return key.endsWith(path.join('espree', 'espree.js'));
@@ -899,11 +898,12 @@ function patchESLint() {
         comment: true,
         filePath: filename
       });
+      //console.log('code: ', String(currentInfos.code));
 
       var ast = espree.parse(String(currentInfos.code), parserOptions);
       var sourceCode = new SourceCode(String(currentInfos.code), ast);
 
-      messages = remapMessages(localVerify(sourceCode), currentInfos.code, pluginSettings.reportBadIndent, currentInfos.badIndentationLines);
+      messages = remapMessages(localVerify(sourceCode), currentInfos.code, pluginSettings.reportBadIndent, currentInfos.badIndentationLines, currentInfos.apexRepeatTags);
       sourceCodeForMessages.set(messages, textOrSourceCode);
     } else messages = localVerify(textOrSourceCode);
 
@@ -921,7 +921,7 @@ function patchESLint() {
   };
 }
 
-function remapMessages(messages, code, reportBadIndent, badIndentationLines) {
+function remapMessages(messages, code, reportBadIndent, badIndentationLines, apexRepeatTags) {
   var newMessages = [];
 
   messages.forEach(function (message) {
@@ -957,6 +957,16 @@ function remapMessages(messages, code, reportBadIndent, badIndentationLines) {
       column: 1,
       ruleId: '(visualforce plugin)',
       severity: reportBadIndent === true ? 2 : reportBadIndent
+    });
+  });
+
+  apexRepeatTags.forEach(function (location) {
+    newMessages.push({
+      message: '<apex:repeat> tags are not allowed in Javascript',
+      line: location.line,
+      column: location.column,
+      ruleId: '(visualforce plugin)',
+      severity: 2
     });
   });
 
@@ -1165,10 +1175,9 @@ var _marked = [dedent].map(regeneratorRuntime.mark);
 var htmlparser2 = __webpack_require__(8);
 var TransformableString = __webpack_require__(2);
 
-function iterateScripts(code, options, onChunk) {
+function iterateScripts(code, onChunk) {
   if (!code) return;
 
-  var xmlMode = options.xmlMode;
   var index = 0;
   var inScript = false;
   var nextType = null;
@@ -1210,6 +1219,11 @@ function iterateScripts(code, options, onChunk) {
 
     onopentag(name) {
       // Test if current tag is a valid <script> tag.
+      if (name === 'apex:repeat' && inScript) {
+        emitChunk('script', parser.startIndex);
+        emitChunk('apex:repeat', parser.endIndex + 1);
+        //console.log('open tag: ', code.slice(parser.startIndex, parser.endIndex+1));
+      }
       if (name !== 'script') return;
       inScript = true;
       emitChunk('html', parser.endIndex + 1);
@@ -1224,6 +1238,12 @@ function iterateScripts(code, options, onChunk) {
     },
 
     onclosetag(name) {
+      if (name === 'apex:repeat' && inScript) {
+        emitChunk('script', parser.startIndex);
+        emitChunk('apex:repeat', parser.endIndex + 1);
+        // console.log('close tag: ', code.slice(parser.startIndex, parser.endIndex+1));
+      }
+
       if (name !== 'script' || !inScript) return;
 
       inScript = false;
@@ -1238,16 +1258,16 @@ function iterateScripts(code, options, onChunk) {
       emitChunk('script', parser.endIndex + 1);
     }
 
-  }, { xmlMode: xmlMode === true });
+  }, { xmlMode: true });
 
   parser.parseComplete(code);
 
   emitChunk('html', parser.endIndex + 1, true);
 }
 
-function computeIndent(descriptor, previousHTML, slice) {
+function computeIndent(descriptor, previousHTML, codeSlice) {
   if (!descriptor) {
-    var indentMatch = /[\n\r]+([ \t]*)/.exec(slice);
+    var indentMatch = /[\n\r]+([ \t]*)/.exec(codeSlice);
     return indentMatch ? indentMatch[1] : '';
   }
 
@@ -1256,7 +1276,7 @@ function computeIndent(descriptor, previousHTML, slice) {
   return descriptor.spaces;
 }
 
-function dedent(indent, slice) {
+function dedent(indent, codeSlice) {
   var hadNonEmptyLine, re, match, newLine, lineIndent, lineText, isEmptyLine, isFirstNonEmptyLine, badIndentation;
   return regeneratorRuntime.wrap(function dedent$(_context) {
     while (1) {
@@ -1266,7 +1286,7 @@ function dedent(indent, slice) {
           re = /(\r\n|\n|\r)([ \t]*)(.*)/g;
 
         case 2:
-          match = re.exec(slice);
+          match = re.exec(codeSlice);
 
           if (match) {
             _context.next = 5;
@@ -1334,58 +1354,74 @@ function dedent(indent, slice) {
   }, _marked[0], this);
 }
 
-function extract(code, indentDescriptor, xmlMode) {
+function extract(code, indentDescriptor) {
   var badIndentationLines = [];
+  var apexRepeatTags = [];
   var transformedCode = new TransformableString(code);
   var lineNumber = 1;
   var previousHTML = '';
 
-  iterateScripts(code, { xmlMode }, function (chunk) {
-    var slice = code.slice(chunk.start, chunk.end);
+  iterateScripts(code, function (chunk) {
+    var codeSlice = code.slice(chunk.start, chunk.end);
 
-    if (chunk.type === 'html' || chunk.type === 'cdata start' || chunk.type === 'cdata end') {
-      var newLinesRe = /(?:\r\n|\n|\r)([^\r\n])?/g;
-      var lastEmptyLinesLength = 0;
-      for (;;) {
-        var match = newLinesRe.exec(slice);
-        if (!match) break;
-        lineNumber += 1;
-        lastEmptyLinesLength = !match[1] ? lastEmptyLinesLength + match[0].length : 0;
-      }
-      transformedCode.replace(chunk.start, chunk.end - lastEmptyLinesLength, '/* HTML */');
-      if (chunk.type === 'html') previousHTML = slice;
-    } else if (chunk.type === 'script') {
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = dedent(computeIndent(indentDescriptor, previousHTML, slice), slice)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var action = _step.value;
-
-          lineNumber += 1;
-          if (action.type === 'dedent') transformedCode.replace(chunk.start + action.from, chunk.start + action.to, '');else if (action.type === 'bad-indent') badIndentationLines.push(lineNumber);
+    switch (chunk.type) {
+      case 'html':
+        previousHTML = codeSlice;
+      // falls through
+      case 'apex:repeat':
+      case 'cdata start':
+      case 'cdata end':
+        {
+          var newLinesRe = /(?:\r\n|\n|\r)([^\r\n])?/g;
+          var lastEmptyLinesLength = 0;
+          for (;;) {
+            var match = newLinesRe.exec(codeSlice);
+            if (!match) break;
+            lineNumber += 1;
+            lastEmptyLinesLength = !match[1] ? lastEmptyLinesLength + match[0].length : 0;
+          }
+          transformedCode.replace(chunk.start, chunk.end - lastEmptyLinesLength, '/* HTML */');
+          break;
         }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
+      // case 'apex:repeat':
+      //   transformedCode.replace(chunk.start, chunk.end, `/* ${codeSlice} */`)
+      //   // TODO add message
+      //   break
+      case 'script':
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
         try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
+          for (var _iterator = dedent(computeIndent(indentDescriptor, previousHTML, codeSlice), codeSlice)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            var action = _step.value;
+
+            lineNumber += 1;
+            if (action.type === 'dedent') transformedCode.replace(chunk.start + action.from, chunk.start + action.to, '');else if (action.type === 'bad-indent') badIndentationLines.push(lineNumber);
           }
+        } catch (err) {
+          _didIteratorError = true;
+          _iteratorError = err;
         } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
+          try {
+            if (!_iteratorNormalCompletion && _iterator.return) {
+              _iterator.return();
+            }
+          } finally {
+            if (_didIteratorError) {
+              throw _iteratorError;
+            }
           }
         }
-      }
+
+        break;
     }
-  });
+  }); // iterateScripts
 
   return {
     code: transformedCode,
-    badIndentationLines
+    badIndentationLines,
+    apexRepeatTags
   };
 }
 
@@ -1457,6 +1493,12 @@ var untaintingParents = {
   MapEntry(parentNode, node) {
     // keys are safe, values are not
     return parentNode.key === node;
+  },
+  VFELMemberExpression() {
+    // VFELMemberExpressions such as field[selector] are not untainting
+    // However, JSENCODE should be applied to the expression itself,
+    // and not the selectors, so we untaint the members of this expression
+    return true;
   }
 };
 
@@ -1489,17 +1531,17 @@ function isTainting(node) {
     return true;
   }
 
-  var untainter = untaintingParents[parent.type];
+  var untainter = parent && untaintingParents[parent.type];
 
   // The parent expression untaints the whole subtree
-  if (untainter && untainter(parent, node)) {
-    return false;
-  } else return isTainting(parent);
+  if (untainter && untainter(parent, node)) return false;else return isTainting(parent);
 }
 
-function checkIdentifier(node, context) {
+function checkNode(node, context) {
+  //console.log(`identifier's `, node.name ,` parent is ${node.parent.type}`)
+
   // Not checking taint for system variables except the only user-controlled one
-  if (isSafeSystemIdentifier(node.name.toUpperCase())) return;
+  if (node.name && isSafeSystemIdentifier(node.name.toUpperCase())) return;
 
   if (isTainting(node)) context.report({
     message: 'JSENCODE() must be applied to all rendered Apex variables',
@@ -1523,7 +1565,10 @@ module.exports = {
   create(context) {
     return {
       VFELIdentifier: function VFELIdentifier(node) {
-        return checkIdentifier(node, context);
+        return checkNode(node, context);
+      },
+      VFELMemberExpression: function VFELMemberExpression(node) {
+        return checkNode(node, context);
       }
     };
   }

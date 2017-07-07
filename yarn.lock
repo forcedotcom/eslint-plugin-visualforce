@@ -2,9 +2,9 @@
 # yarn lockfile v1
 
 
-"@salesforce/acorn-visualforce@^1.4.1":
-  version "1.4.1"
-  resolved "https://registry.yarnpkg.com/@salesforce/acorn-visualforce/-/acorn-visualforce-1.4.1.tgz#352bd89057530a9926a3e470446bb628b0e1fd6a"
+"@salesforce/acorn-visualforce@^1.4.2":
+  version "1.4.2"
+  resolved "https://registry.yarnpkg.com/@salesforce/acorn-visualforce/-/acorn-visualforce-1.4.2.tgz#789d65d680c386797625dc5986820d890409113b"
 
 abbrev@1:
   version "1.1.0"

@@ -4,7 +4,7 @@
     <p>It is a bad practice, so the linter will complain about it.</p>
     <script>
       <apex:repeat value="{! someArray }" var="entry">
-          var foo = {! entry }
+        var someVariable = <apex:outputText value="{!someVariable}" escape="false"></apex:outputText>
       </apex:repeat>
     </script>
 </apex:page>

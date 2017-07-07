@@ -1,7 +1,7 @@
 const path = require('path')
 const test = require('tape')
 const CLIEngine = require('eslint').CLIEngine
-const plugin = require('../dist/index.js')
+const plugin = require('../dist')
 
 function execute(file, baseConfig) {
   if (!baseConfig) baseConfig = {}
@@ -80,16 +80,16 @@ test('<apex:*> tags in Javascript', assert => {
   assert.deepEqual(messages[0], { ruleId: 'visualforce/vf-no-apex-tags',
     severity: 2,
     message: 'VisualForce standard components (<apex:*> tags) are not allowed in Javascript',
-    line: 6,
-    column: 7,
+    line: 7,
+    column: 28,
     nodeType: 'JSXElement',
-    source: '<apex:repeat value="{! someArray }" var="entry">'
+    source: 'var someVariable = <apex:outputText value="{!someVariable}" escape="false"></apex:outputText>'
   })
 
 })
 
 test('JSENCODE of Apex variables', assert => {
-  assert.plan(5)
+  assert.plan(6)
 
   const messages = execute('jsencode.page', {
     rules: {
@@ -97,7 +97,7 @@ test('JSENCODE of Apex variables', assert => {
     }
   })
 
-  assert.equals(messages.length, 4, 'There are exactly 4 tainted variables')
+  assert.equals(messages.length, 5, 'There are exactly 5 tainted variables')
 
   assert.deepEqual(messages[0], {
     line: 5,
@@ -141,6 +141,17 @@ test('JSENCODE of Apex variables', assert => {
     ruleId: 'visualforce/vf-jsencode',
     severity: 2,
     source: 'var unsafeSystemVar = \'{! $CurrentPage.parameters.retURL }\'',
+  })
+
+  assert.deepEqual(messages[4], {
+    line: 10,
+    column: 36,
+    fix: { range: [ 430, 456 ], text: 'JSENCODE(some.array[another[field]])' },
+    message: 'JSENCODE() must be applied to all rendered Apex variables',
+    nodeType: 'VFELMemberExpression',
+    ruleId: 'visualforce/vf-jsencode',
+    severity: 2,
+    source: 'var selectorExpression = "{! some.array[another[field]] }"',
   })
 
 })
