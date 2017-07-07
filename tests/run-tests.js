@@ -32,12 +32,12 @@ test('Merge field in JS expression context', assert => {
 
   const messages = execute('simple.page', {
     rules: {
-      'visualforce/vf-no-atom-expr': 'error'
+      'visualforce/no-atom-expr': 'error'
     }
   })
 
   assert.equal(messages.length, 1)
-  assert.deepEqual(messages[0], { ruleId: 'visualforce/vf-no-atom-expr',
+  assert.deepEqual(messages[0], { ruleId: 'visualforce/no-atom-expr',
     severity: 2,
     message: 'VisualForce merge fields should only be allowed in strings',
     line: 5,
@@ -54,7 +54,7 @@ test('Autofixing merge fields in JS expression context', assert => {
 
   const result = execute('fix.page', {
     rules: {
-      'visualforce/vf-no-atom-expr': 'error'
+      'visualforce/no-atom-expr': 'error'
     },
     fix: true
   })
@@ -73,11 +73,11 @@ test('<apex:*> tags in Javascript', assert => {
 
   const messages = execute('apex-tags-in-script.page', {
     rules: {
-      'visualforce/vf-no-apex-tags': 'error'
+      'visualforce/no-apex-tags': 'error'
     }
   })
 
-  assert.deepEqual(messages[0], { ruleId: 'visualforce/vf-no-apex-tags',
+  assert.deepEqual(messages[0], { ruleId: 'visualforce/no-apex-tags',
     severity: 2,
     message: 'VisualForce standard components (<apex:*> tags) are not allowed in Javascript',
     line: 7,
@@ -93,7 +93,7 @@ test('JSENCODE of Apex variables', assert => {
 
   const messages = execute('jsencode.page', {
     rules: {
-      'visualforce/vf-jsencode': 'error'
+      'visualforce/jsencode': 'error'
     }
   })
 
@@ -105,7 +105,7 @@ test('JSENCODE of Apex variables', assert => {
     fix: { range: [ 118, 130 ], text: 'JSENCODE(apexVariable)' },
     message: 'JSENCODE() must be applied to all rendered Apex variables',
     nodeType: 'VFELIdentifier',
-    ruleId: 'visualforce/vf-jsencode',
+    ruleId: 'visualforce/jsencode',
     severity: 2,
     source: 'var foo =  \'{! apexVariable }\'',
   })
@@ -116,7 +116,7 @@ test('JSENCODE of Apex variables', assert => {
     fix: { range: [ 190, 205 ], text: 'JSENCODE(taintedVariable)' },
     message: 'JSENCODE() must be applied to all rendered Apex variables',
     nodeType: 'VFELIdentifier',
-    ruleId: 'visualforce/vf-jsencode',
+    ruleId: 'visualforce/jsencode',
     severity: 2,
     source: 'var bar =  "{! IF(LEN(apexVariable)>5, \'bazinga\', taintedVariable) }"',
   })
@@ -127,7 +127,7 @@ test('JSENCODE of Apex variables', assert => {
     fix: { range: [ 253, 259 ], text: 'JSENCODE(result)' },
     message: 'JSENCODE() must be applied to all rendered Apex variables',
     nodeType: 'VFELIdentifier',
-    ruleId: 'visualforce/vf-jsencode',
+    ruleId: 'visualforce/jsencode',
     severity: 2,
     source: 'var baz = "{! CASE(condition, value, result) }"',
   })
@@ -138,7 +138,7 @@ test('JSENCODE of Apex variables', assert => {
     fix: { range: [ 361, 391 ], text: 'JSENCODE($CurrentPage.parameters.retURL)' },
     message: 'JSENCODE() must be applied to all rendered Apex variables',
     nodeType: 'VFELIdentifier',
-    ruleId: 'visualforce/vf-jsencode',
+    ruleId: 'visualforce/jsencode',
     severity: 2,
     source: 'var unsafeSystemVar = \'{! $CurrentPage.parameters.retURL }\'',
   })
@@ -149,7 +149,7 @@ test('JSENCODE of Apex variables', assert => {
     fix: { range: [ 430, 456 ], text: 'JSENCODE(some.array[another[field]])' },
     message: 'JSENCODE() must be applied to all rendered Apex variables',
     nodeType: 'VFELMemberExpression',
-    ruleId: 'visualforce/vf-jsencode',
+    ruleId: 'visualforce/jsencode',
     severity: 2,
     source: 'var selectorExpression = "{! some.array[another[field]] }"',
   })

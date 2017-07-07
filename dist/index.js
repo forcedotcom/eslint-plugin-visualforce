@@ -981,9 +981,9 @@ patchESLint();
 
 module.exports = {
   rules: {
-    'vf-no-atom-expr': __webpack_require__(6),
-    'vf-no-apex-tags': __webpack_require__(5),
-    'vf-jsencode': __webpack_require__(4)
+    'no-atom-expr': __webpack_require__(6),
+    'no-apex-tags': __webpack_require__(5),
+    'jsencode': __webpack_require__(4)
   }
 };
 

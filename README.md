@@ -26,9 +26,9 @@ Example:
         "@salesforce/eslint-plugin-visualforce"
     ],
     "rules": {
-      "visualforce/vf-no-atom-expr": "error",
-      "visualforce/vf-no-apex-tags": "error",
-      "visualforce/vf-jsencode": "error"
+      "visualforce/no-atom-expr": "error",
+      "visualforce/no-apex-tags": "error",
+      "visualforce/jsencode": "error"
     }
 }
 ```

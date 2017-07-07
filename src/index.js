@@ -213,8 +213,8 @@ patchESLint()
 
 module.exports = {
   rules: {
-    'vf-no-atom-expr': require('./rules/vf-no-atom-expr'),
-    'vf-no-apex-tags': require('./rules/vf-no-apex-tags'),
-    'vf-jsencode': require('./rules/vf-jsencode'),
+    'no-atom-expr': require('./rules/no-atom-expr'),
+    'no-apex-tags': require('./rules/no-apex-tags'),
+    'jsencode': require('./rules/jsencode'),
   }
 }
