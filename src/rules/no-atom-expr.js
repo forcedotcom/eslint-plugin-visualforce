@@ -9,9 +9,10 @@
 module.exports = {
   meta: {
     docs: {
-      description: 'disallow VFEL merge fields as atomic expressions',
+      description: 'Disallow VFEL merge fields as atomic expressions',
       category: 'Possible Errors',
       recommended: true,
+      url: 'https://github.com/forcedotcom/eslint-plugin-visualforce/blob/master/docs/rules/no-atom-expr.md'
     },
     fixable: 'code',
     schema: [], // no options
