@@ -1163,7 +1163,7 @@ module.exports = function () {
 "use strict";
 
 
-var _marked = [dedent].map(regeneratorRuntime.mark);
+var _marked = /*#__PURE__*/regeneratorRuntime.mark(dedent);
 
 /**
  * @author Benoît Zugmeyer, Marat Vyshegorodtsev
@@ -1351,7 +1351,7 @@ function dedent(indent, codeSlice) {
           return _context.stop();
       }
     }
-  }, _marked[0], this);
+  }, _marked, this);
 }
 
 function extract(code, indentDescriptor) {
@@ -1558,10 +1558,12 @@ module.exports = {
     docs: {
       description: 'Require all unsafe Apex variables to be JSENCODEd',
       category: 'Possible Errors',
-      recommended: true
+      recommended: true,
+      url: 'https://github.com/forcedotcom/eslint-plugin-visualforce/blob/master/docs/rules/jsencode.md'
     },
     fixable: 'code',
-    schema: [] },
+    schema: [] // no options
+  },
   create(context) {
     return {
       VFELIdentifier: function VFELIdentifier(node) {
@@ -1592,11 +1594,13 @@ module.exports = {
 module.exports = {
   meta: {
     docs: {
-      description: 'disallow <apex:*> tags inside <script> tags',
+      description: 'Disallow <apex:*> tags inside <script> tags',
       category: 'Possible Errors',
-      recommended: true
+      recommended: true,
+      url: 'https://github.com/forcedotcom/eslint-plugin-visualforce/blob/master/docs/rules/no-apex-tags.md'
     },
-    schema: [] },
+    schema: [] // no options
+  },
   create(context) {
     return {
       JSXElement: function JSXElement(node) {
@@ -1627,12 +1631,14 @@ module.exports = {
 module.exports = {
   meta: {
     docs: {
-      description: 'disallow VFEL merge fields as atomic expressions',
+      description: 'Disallow VFEL merge fields as atomic expressions',
       category: 'Possible Errors',
-      recommended: true
+      recommended: true,
+      url: 'https://github.com/forcedotcom/eslint-plugin-visualforce/blob/master/docs/rules/no-atom-expr.md'
     },
     fixable: 'code',
-    schema: [] },
+    schema: [] // no options
+  },
   create(context) {
     return {
       VFELExpression: function VFELExpression(node) {

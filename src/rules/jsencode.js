@@ -132,6 +132,7 @@ module.exports = {
       description: 'Require all unsafe Apex variables to be JSENCODEd',
       category: 'Possible Errors',
       recommended: true,
+      url: 'https://github.com/forcedotcom/eslint-plugin-visualforce/blob/master/docs/rules/jsencode.md'
     },
     fixable: 'code',
     schema: [], // no options

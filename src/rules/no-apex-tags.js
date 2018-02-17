@@ -9,9 +9,10 @@
 module.exports = {
   meta: {
     docs: {
-      description: 'disallow <apex:*> tags inside <script> tags',
+      description: 'Disallow <apex:*> tags inside <script> tags',
       category: 'Possible Errors',
       recommended: true,
+      url: 'https://github.com/forcedotcom/eslint-plugin-visualforce/blob/master/docs/rules/no-apex-tags.md'
     },
     schema: [], // no options
   },
